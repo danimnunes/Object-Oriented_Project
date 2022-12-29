@@ -1,0 +1,45 @@
+package prr.app.clients;
+
+import prr.Network;
+import prr.app.exceptions.DuplicateClientKeyException;
+import prr.exceptions.DuplicateClientKeyCoreException;
+import prr.exceptions.UnrecognizedEntryException;
+import pt.tecnico.uilib.menus.Command;
+import pt.tecnico.uilib.menus.CommandException;
+import pt.tecnico.uilib.forms.Form;
+
+
+/**
+ * Register new client.
+ */
+class DoRegisterClient extends Command<Network> {
+
+	DoRegisterClient(Network receiver) {
+		super(Label.REGISTER_CLIENT, receiver);
+	}
+
+	@Override
+	protected final void execute() throws CommandException {
+	
+		Form input = new Form();
+		/*Ask user for input. */
+		input.addStringField("key", Prompt.key());
+		input.addStringField("name", Prompt.name());
+		input.addStringField("taxId", Prompt.taxId());
+		input.parse();
+		/*Put the arguments recieved according with RegisterClient method. */
+		String[] fields = new String[4];
+		fields[0] = "CLIENT";
+		fields[1] = input.stringField("key");
+		fields[2] = input.stringField("name");
+		fields[3] = input.stringField("taxId");
+		try {
+			_receiver.RegisterClient(fields);
+			_receiver.setChanged(true);
+		} catch (UnrecognizedEntryException e) {
+			e.printStackTrace();
+		} catch (DuplicateClientKeyCoreException e) {
+			throw new DuplicateClientKeyException(e.getKey());
+		}
+	}
+}

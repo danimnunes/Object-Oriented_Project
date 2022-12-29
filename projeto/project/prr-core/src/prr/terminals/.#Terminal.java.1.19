@@ -1,0 +1,149 @@
+package prr.terminals;
+
+import java.io.Serializable;
+import java.util.Collections;
+
+import prr.Communications.Communication;
+import prr.Network;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Collection;
+
+
+/**
+ * Abstract terminal.
+ */
+abstract public class Terminal implements Serializable {
+
+	/** Serial number for serialization. */
+	private static final long serialVersionUID = 202208091753L;
+
+        /*Terminal type (basic or fancy). */
+        private String _terminalType;
+
+        /*Terminal ID. */
+        private String _terminalID;
+
+        /*Terminal status. */
+        private TerminalState _terminalStatus;
+
+        /*Client ID associated to terminal. */
+        private String _clientID;
+
+        /*Terminal payments balance. */
+        private int _balancePaid = 0;
+
+        /*Terminal debts balance. */
+        private int _balanceDebts = 0;
+
+        /*Terminal's friend list. */
+        public List<String> _terminalFriends = new ArrayList<String>();
+
+        /*Terminal's iniciated communication list. */
+        private Map<Integer, Communication> _terminalMadeCommunications = new TreeMap<Integer, Communication>();
+
+        /*Terminal's received communication list. */
+        private Map<Integer, Communication> _terminalReceivedCommunications = new TreeMap<Integer, Communication>();
+
+
+        public Terminal(String terminalType, String terminalID,
+        String clientID, String terminalStatus) {
+                _terminalType = terminalType;
+                _terminalID = terminalID;
+                _clientID = clientID;
+                if (terminalStatus.equals("ON"))
+                        _terminalStatus = new IdleState(this);
+                if (terminalStatus.equals("OFF"))
+                        _terminalStatus = new OffState(this);
+                if (terminalStatus.equals("BUSY"))
+                        _terminalStatus = new BusyState(this);
+                if (terminalStatus.equals("SILENCE"))
+                        _terminalStatus = new SilenceState(this);
+        }
+
+        public String getClientID() {
+                return this._clientID;
+        }
+
+        public String getTerminalID() {
+                return this._terminalID;
+        }
+
+        public Collection getTerminalMadeCommunications() {
+                return this._terminalMadeCommunications.values();
+        }
+
+        public Collection getTerminalReceivedCommunications() {
+                return this._terminalReceivedCommunications.values();
+        }
+
+        public Communication getCommunication(int communicationNumber) {
+                if (_terminalMadeCommunications.containsKey(communicationNumber))
+                        return _terminalMadeCommunications.get(communicationNumber);
+                if (_terminalReceivedCommunications.containsKey(communicationNumber))
+                        return _terminalReceivedCommunications.get(communicationNumber);
+                return null;
+        }
+
+        public TerminalState getTerminalState() {
+                return this._terminalStatus;
+        }
+
+        public String getTerminalType() {
+                return this._terminalType;
+        }
+
+        public void setTerminalState(TerminalState state) {
+                this._terminalStatus = state;
+        }
+
+        public void AddToReceivedCommunications(Communication communication, int communicationNumber) {
+                _terminalReceivedCommunications.put(communicationNumber, communication);
+        }
+
+        public void AddToMadeCommunications(Communication communication, int communicationNumber) {
+                Integer num = communicationNumber;
+                _terminalMadeCommunications.put(communicationNumber, communication);
+        }
+
+        public String toString() {
+                return this._terminalType + "|" + this._terminalID + "|" +
+                this._clientID + "|" + this._terminalStatus.toString() + "|" +
+                this._balancePaid + "|" + this._balanceDebts +
+                (this._terminalFriends.isEmpty() ? "" : "|" + this._terminalFriends.toString().replace("[","").replace("]",""));
+        }
+
+        public void addFriend(Terminal terminalFriendID) {
+                this._terminalFriends.add(terminalFriendID.getTerminalID());
+        }
+
+
+        /**
+         * Checks if this terminal can end the current interactive communication.
+         *
+         * @return true if this terminal is busy (i.e., it has an active interactive communication) and
+         *          it was the originator of this communication.
+         **/
+        public boolean canEndCurrentCommunication() {
+                if (_terminalStatus.toString().equals("BUSY"))
+                        for (Communication comm : _terminalMadeCommunications.values()) {
+                                if (comm.getStatus() == true)
+                                        return true;
+                        }
+                return false;
+        }
+
+        /**
+         * Checks if this terminal can start a new communication.
+         *
+         * @return true if this terminal is neither off neither busy, false otherwise.
+         **/
+        public boolean canStartCommunication() {
+                if (_terminalStatus.toString().equals("OFF") || _terminalStatus.toString().equals("BUSY"))
+                        return false;
+                else
+                        return true;
+        }
+}

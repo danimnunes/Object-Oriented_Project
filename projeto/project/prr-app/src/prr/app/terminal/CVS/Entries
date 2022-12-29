@@ -1,0 +1,17 @@
+/Label.java/1.1/Wed Sep 14 16:51:38 2022//
+/Prompt.java/1.3/Thu Sep 29 10:48:17 2022//
+/TerminalCommand.java/1.1/Wed Sep 14 16:51:38 2022//
+/Menu.java/1.3/Fri Oct 21 23:06:38 2022//
+/Message.java/1.3/Sun Oct 23 20:54:01 2022//
+/DoAddFriend.java/1.9/Tue Nov  1 14:53:35 2022//
+/DoEndInteractiveCommunication.java/1.12/Tue Nov  1 14:49:19 2022//
+/DoPerformPayment.java/1.5/Tue Nov  1 14:49:40 2022//
+/DoRemoveFriend.java/1.4/Tue Nov  1 14:50:06 2022//
+/DoShowOngoingCommunication.java/1.4/Tue Nov  1 14:51:15 2022//
+/DoSendTextCommunication.java/1.14/Tue Nov  1 18:33:59 2022//
+/DoShowTerminalBalance.java/1.4/Tue Nov  1 18:33:59 2022//
+/DoSilenceTerminal.java/1.8/Tue Nov  1 18:33:59 2022//
+/DoTurnOffTerminal.java/1.6/Tue Nov  1 18:33:59 2022//
+/DoTurnOnTerminal.java/1.6/Tue Nov  1 18:33:59 2022//
+/DoStartInteractiveCommunication.java/1.16/Tue Nov  1 19:38:53 2022//
+D

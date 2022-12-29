@@ -1,0 +1,112 @@
+package prr.Clients;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Collection;
+
+import prr.terminals.Terminal;
+import prr.Communications.Notification;
+import prr.Communications.Communication;
+
+
+public class Client implements Serializable {
+    
+    /** Serial number for serialization. */
+	private static final long serialVersionUID = 202208091753L;
+
+    /*Client's Key */
+    private String _clientKey;
+
+    /*Client's name*/
+    private String _clientName;
+
+    /*Client's NIF*/
+    private String _clienttaxID;
+
+    /*Client's state*/
+    private ClientState _clientType;
+
+    /*Client's notifications*/
+    private boolean _canReceiveNotifications;
+
+    /*Client's terminals*/
+    private Map<String,Terminal> _clientTerminals = new TreeMap<String, Terminal>();
+    
+
+    /*Client's number of associated terminals*/
+    private int _clientNumberTerminals = 0;
+
+    /*Client's payments*/
+    private int _clientPayments = 0;
+
+    /*Client's debts*/
+    private int _clientDebts = 0;
+
+    /*List of Client's notifications */
+    private List<Notification> _clientNotifications = new ArrayList<Notification>();
+
+    /*Client's tariff plan. */
+    TariffPlan _clientPlan = new Plan_1();
+
+    public Client(String clientKey, String clientName, String clienttaxID) {
+        
+        _clientKey = clientKey;
+        _clientName = clientName;
+        _clienttaxID = clienttaxID;
+        _clientType = new NormalState(this);
+        _canReceiveNotifications = true;
+    }
+
+    public int getClientNumberTerminals() {
+        return this._clientNumberTerminals;
+    }
+
+    public TariffPlan getTariffPlan() {
+        return this._clientPlan;
+    }
+
+  
+
+    public boolean ClientNotifications() {
+        return this._canReceiveNotifications;
+    }
+
+    public void setClientNumberTerminals(int number) {
+        _clientNumberTerminals = number;
+    }
+
+    public void addTerminalToClient(String terminalId, Terminal terminal) {
+        _clientTerminals.put(terminalId, terminal);
+    }
+
+    public void setClientType(ClientState state) {
+        this._clientType = state;
+    }
+
+    public void setNotification(boolean clientNotifications) {
+        _canReceiveNotifications = clientNotifications;
+    }
+
+
+
+    public int CalculateCommunicationPrice (int communicationDuration, String communicationType, TariffPlan plan) {
+        int price = _clientType.calculatePrice(communicationDuration, communicationType, plan);
+        return price;
+    }
+
+    public void addToDebts(int debt) {
+        _clientDebts += debt;
+    }
+
+    public String toString() {
+        return "CLIENT|" + this._clientKey + "|" + this._clientName + "|" +
+        this._clienttaxID + "|" + this._clientType + "|" + 
+        (this._canReceiveNotifications == true ? "YES" : "NO") + "|" + 
+        (this._clientNumberTerminals == 0 ? "0|0|0" : this._clientNumberTerminals
+        + "|" + this._clientPayments + "|" + this._clientDebts);
+    }
+}

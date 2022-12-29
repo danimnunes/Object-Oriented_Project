@@ -1,0 +1,4 @@
+export CLASSPATH=/home/danimnunes/ist/po/projeto/po-uilib/po-uilib.jar:/home/danimnunes/is
+t/po/projeto/project/prr-app/prr-app.jar:/home/danimnunes/ist/po/projeto/project/prr-core/prr-core.jar
+
+java prr.app.App

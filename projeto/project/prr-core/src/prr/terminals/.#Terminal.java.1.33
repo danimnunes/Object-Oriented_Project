@@ -1,0 +1,231 @@
+package prr.terminals;
+
+import java.io.Serializable;
+import java.util.Collections;
+
+import prr.Communications.Communication;
+import prr.Network;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Collection;
+
+
+/**
+ * Abstract terminal.
+ */
+public abstract class Terminal implements Serializable {
+
+	/** Serial number for serialization. */
+	private static final long serialVersionUID = 202208091753L;
+
+        /*true if terminal can do video communications. */
+        private boolean _canVideoCommunicate;
+
+        /*Terminal ID. */
+        private String _terminalID;
+
+        /*Terminal status. */
+        private TerminalState _terminalStatus;
+
+        /*Terminal previous status. */
+        private TerminalState _previouStatus;
+
+        /*Client ID associated to terminal. */
+        private String _clientID;
+
+        /*Terminal payments balance. */
+        private long _balancePaid = 0;
+
+        /*Terminal debts balance. */
+        private long _balanceDebts = 0;
+
+        /*Terminal's friend Map. */
+	private Map<String, Terminal> _terminalFriends = new TreeMap<String, Terminal>(String.CASE_INSENSITIVE_ORDER);
+
+        /*Terminal's iniciated communication Map. */
+        private Map<Integer, Communication> _terminalMadeCommunications = new TreeMap<Integer, Communication>();
+
+        /*Terminal's received communication Map. */
+        private Map<Integer, Communication> _terminalReceivedCommunications = new TreeMap<Integer, Communication>();
+
+
+        public Terminal(boolean canVideoCommunicate, String terminalID,
+        String clientID, String terminalStatus) {
+                _canVideoCommunicate = canVideoCommunicate;
+                _terminalID = terminalID;
+                _clientID = clientID;
+                switch (terminalStatus) {
+			case "OFF" -> _terminalStatus = new OffState(this);
+			case "BUSY" -> _terminalStatus = new BusyState(this);
+			case "SILENCE" -> _terminalStatus = new SilenceState(this);
+			default -> _terminalStatus = new IdleState(this);
+		}
+                        
+        }
+
+        public String getClientID() {
+                return this._clientID;
+        }
+
+        public String getTerminalID() {
+                return this._terminalID;
+        }
+
+        public Collection getTerminalMadeCommunications() {
+                return this._terminalMadeCommunications.values();
+        }
+
+        public Collection getTerminalReceivedCommunications() {
+                return this._terminalReceivedCommunications.values();
+        }
+
+
+
+	public boolean searchMadeCommunication(int key) {
+		return _terminalMadeCommunications.containsKey(key);
+
+	}
+
+        public long getBalance() {
+                return this._balancePaid - this._balanceDebts;
+        }
+
+        public long getPayments() {
+                return this._balancePaid;
+        }
+
+        public long getDebts() {
+                return this._balanceDebts;
+        }
+
+        public Communication getCommunication(int communicationNumber) {
+                if (_terminalMadeCommunications.containsKey(communicationNumber))
+                        return _terminalMadeCommunications.get(communicationNumber);
+                if (_terminalReceivedCommunications.containsKey(communicationNumber))
+                        return _terminalReceivedCommunications.get(communicationNumber);
+                return null;
+        }
+
+        public Communication getOngoingCommunication() {
+                for (Communication communication : this._terminalMadeCommunications.values())
+                        if (communication.getCommunicationStatus() == true)
+                                return communication;
+                return null;
+        }
+
+        public boolean isFinished(int communicationNumber) {
+                if(getCommunication(communicationNumber).getCommunicationStatus()) 
+                        return false;
+                return true;
+                
+        }
+
+        public Communication getTextCommunication() {
+                for (Communication communication : this._terminalMadeCommunications.values())
+                        if (communication.getCommunicationStatus() == false)
+                                return communication;
+                return null;
+        }
+
+
+
+        public TerminalState getTerminalState() {
+                return this._terminalStatus;
+        }
+
+        public TerminalState getPreviouState() {
+                return this._previouStatus;
+        }
+
+        public boolean canVideoCommunicate() {
+                return this._canVideoCommunicate;
+        }
+
+        public void setTerminalState(TerminalState state) {
+                this._terminalStatus = state;
+        }
+
+        public void setPreviousState(TerminalState state) {
+                this._previouStatus = state;
+        }
+
+        public void AddToReceivedCommunicationsTerminal(Communication communication, int communicationNumber) {
+                _terminalReceivedCommunications.put(communicationNumber, communication);
+        }
+
+        public void AddToMadeCommunicationsTerminal(Communication communication, int communicationNumber) {
+                _terminalMadeCommunications.put(communicationNumber, communication);
+        }
+
+        public void addFriend(String terminalFriendID, Terminal terminal) {
+                if(!(this._terminalFriends.containsKey(terminalFriendID)) && this._terminalID != terminalFriendID) {
+                        this._terminalFriends.put(terminalFriendID, terminal);
+                }
+        }
+
+        public void removeFriend(String terminalFriendID, Terminal terminal) {
+                if(this._terminalFriends.containsKey(terminalFriendID) && this._terminalID != terminalFriendID) {
+                        this._terminalFriends.remove(terminalFriendID, terminal);
+                }
+        }
+
+        public boolean hasDiscount(Terminal receiverTerminal) {
+                if (this._terminalFriends.containsKey(receiverTerminal.getTerminalID()))
+                        return true;
+                else
+                        return false;
+        }
+
+        public void addToTerminalDebts(long debt) {
+                _balanceDebts += debt;
+        }
+
+        public void removeFromTerminalDebts(long debt) {
+                _balanceDebts -= debt;
+        }
+
+        public void addToTerminalPayments(long debt) {
+                _balancePaid += debt;
+        }
+
+        
+
+
+        public String toString() {
+                return (this._canVideoCommunicate == true ? "FANCY" : "BASIC") + "|" + this._terminalID
+                + "|" + this._clientID + "|" + String.valueOf(this._terminalStatus) + "|" + this._balancePaid
+                + "|" + this._balanceDebts + (this._terminalFriends.isEmpty() ? "" : "|"
+                + this._terminalFriends.keySet().toString().replace("[","").replace("]",""));
+        }
+
+
+
+
+        /**
+         * Checks if this terminal can end the current interactive communication.
+         *
+         * @return true if this terminal is busy (i.e., it has an active interactive communication) and
+         *          it was the originator of this communication.
+         **/
+        public boolean canEndCurrentCommunication() {
+                if (!String.valueOf(_terminalStatus).equals("BUSY"))
+                        return false;
+                for (Communication communication : _terminalMadeCommunications.values()) {
+                        if (communication.getCommunicationStatus() == true)
+                                        return true;
+                        }
+                return false;
+        }
+
+        /**
+         * Checks if this terminal can start a new communication.
+         *
+         * @return true if this terminal is neither off neither busy, false otherwise.
+         **/
+        public boolean canStartCommunication() {
+                if (String.valueOf(_terminalStatus).equals("OFF") || String.valueOf(_terminalStatus).equals("BUSY"))
+                        return false;
+                else
+                        return true;
+        }
+}

@@ -1,0 +1,30 @@
+package prr.app.lookups;
+
+import prr.Network;
+import prr.app.exceptions.UnknownClientKeyException;
+import pt.tecnico.uilib.menus.Command;
+import pt.tecnico.uilib.menus.CommandException;
+import pt.tecnico.uilib.forms.Form;
+import java.util.Collections;
+
+/**
+ * Show communications from a client.
+ */
+class DoShowCommunicationsFromClient extends Command<Network> {
+
+	DoShowCommunicationsFromClient(Network receiver) {
+		super(Label.SHOW_COMMUNICATIONS_FROM_CLIENT, receiver);
+		//FIXME add command fields
+	}
+
+	@Override
+	protected final void execute() throws CommandException {
+		/*String clientkey = Form.requestString(Prompt.clientKey());
+		if (_receiver.searchClient(clientkey)) {
+			_display.addAll(_receiver.showCommunicationsFromClient(_receiver.getClient()));
+			_display.display();
+		}
+		else
+			throw new UnknownClientKeyException(clientkey);*/
+	}
+}

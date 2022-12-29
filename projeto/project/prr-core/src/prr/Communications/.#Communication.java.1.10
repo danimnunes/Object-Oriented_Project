@@ -1,0 +1,120 @@
+package prr.Communications;
+
+import java.io.Serializable;
+
+import java.util.Comparator;
+
+public class Communication implements Serializable, Comparable<Communication> {
+
+    /** Serial number for serialization. */
+	private static final long serialVersionUID = 202208091753L;
+
+        /*Terminal ID. */
+        private int _communicationID;
+
+        /*Communication's Sender ID*/
+        private String _senderID;
+    
+        /*Communication's Receiver ID*/
+        private String _receiverID;
+    
+        /*Communication's Status (ongoing or finished)*/
+        private boolean _activecommunication;
+
+        private boolean _communicationPaid;
+
+    
+        /*Communication's number of Units*/
+        private int _communicationUnits = 0;
+
+        /*Communication's Price*/
+        private long _communicationPrice = 0;
+
+        /*Communication message (text communications)*/
+        private String _textMessage;
+
+        /*Communication type (video or voice)*/
+        private String _communicationType;
+    
+        public Communication(int communicationID, String senderID, String receiverID, String textMessage) {
+            _communicationID = communicationID;
+            _senderID = senderID;
+            _receiverID = receiverID;
+            _textMessage = textMessage;
+        }
+
+        public Communication(String communicationType, int communicationID, String senderID, String receiverID) {
+            _communicationID = communicationID;
+            _senderID = senderID;
+            _receiverID = receiverID;
+            _communicationType = communicationType;
+        }
+    
+        public int getID() {
+            return this._communicationID;
+        }
+    
+        public String getsenderID() {
+            return this._senderID;
+        }
+    
+        public String getreceiverID() {
+            return this._receiverID;
+        }
+    
+        public String getType() {
+            return this._communicationType;
+        }
+    
+        public boolean getCommunicationStatus() {
+            return this._activecommunication;
+        }
+
+        public boolean getCommunicationPaidStatus() {
+            return this._communicationPaid;
+        }
+
+        public int getUnits() {
+            return this._communicationUnits;
+        }
+    
+        public long getPrice() {
+            return this._communicationPrice;
+        }
+
+        public void setStatus(boolean status) {
+            this._activecommunication = status;
+        }
+
+        public void setPaidStatus(boolean status) {
+            this._communicationPaid = status;
+        }
+
+        public void setPrice(long price) {
+            _communicationPrice = price;
+        }
+
+        public void setUnits(int units) {
+            _communicationUnits = units;
+        }
+
+        public void setType(String communicationType) {
+            _communicationType = communicationType;
+        }
+
+        @Override
+        public int compareTo(Communication c) {
+            //let's sort the employee based on an id in ascending order
+            //returns a negative integer, zero, or a positive integer as this employee id
+            //is less than, equal to, or greater than the specified object.
+            return (this._communicationID - c._communicationID);
+        }
+
+    
+        public String toString() {
+            return  this._communicationType + "|" + this._communicationID + "|" +
+            this._senderID + "|" + this._receiverID + "|" + this._communicationUnits
+            + "|" + Math.round(this._communicationPrice) + "|" + (this._activecommunication == true ? "ONGOING" : "FINISHED");
+        }
+    
+}

@@ -1,0 +1,220 @@
+package prr;
+
+import java.io.Serializable;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import prr.exceptions.UnrecognizedEntryException;
+
+import prr.exceptions.DuplicateClientKeyCoreException;
+import prr.exceptions.UnknownClientKeyCoreException;
+
+import prr.Clients.Client;
+import prr.terminals.Terminal;
+import prr.Communications.Communication;
+import java.util.Collection;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.List;
+import java.util.ArrayList;
+
+import prr.Clients.Client;
+import prr.terminals.Terminal;
+import prr.terminals.FancyTerminal;
+import prr.terminals.BasicTerminal;
+import prr.Communications.Communication;
+
+
+// FIXME add more import if needed (cannot import from pt.tecnico or prr.app)
+
+/**
+ * Class Store implements a store.
+ */
+public class Network implements Serializable {
+
+	/** Serial number for serialization. */
+	private static final long serialVersionUID = 202208091753L;
+
+	/*Control saves. If there are no changes, there is no save. */
+	private boolean _changed = false;
+
+	/*Each client key as his client associated. */
+	private Map<String, Client> _Clients = new TreeMap<String, Client>();
+
+	/*Each terminal has is ID associated. */
+	private Map<String, Terminal> _Terminals = new TreeMap<String, Terminal>();
+
+	/*Each communication has is ID associated. */
+	private Map<Integer, Communication> _Communications = new TreeMap<Integer, Communication>();
+
+        // FIXME define attributes
+        // FIXME define contructor(s)
+        // FIXME define methods
+
+	/**
+	 * Read text input file and create corresponding domain entities.
+	 * 
+	 * @param FileName name of the text input file
+     * @throws UnrecognizedEntryException if some entry is not correct
+	 * @throws IOException if there is an IO erro while processing the text file
+	 */
+
+	void importFile(String FileName) throws UnrecognizedEntryException, IOException, DuplicateClientKeyCoreException, UnknownClientKeyCoreException {
+		try {
+			String[] splited_line;
+			BufferedReader reader = new BufferedReader(new FileReader(FileName));
+			String line;
+			while((line = reader.readLine()) != null) {
+				splited_line = line.split("\\|");
+				try {
+					RegisterObject(splited_line);
+				} catch(UnrecognizedEntryException e1) {
+					e1.printStackTrace();
+				}
+			}
+			reader.close();
+		}
+		catch(IOException e) {
+			e.printStackTrace();
+		}
+    }
+
+
+	public void setChanged(boolean changed) {
+		_changed = changed;
+	}
+
+	public boolean hasChanged() {
+		return _changed;
+	}
+
+
+	public void RegisterObject(String[] splited_line) throws UnrecognizedEntryException, DuplicateClientKeyCoreException, UnknownClientKeyCoreException {
+		switch (splited_line[0]) {
+			case "CLIENT" -> RegisterClient(splited_line);
+			case "BASIC", "FANCY" -> RegisterTerminal(splited_line);
+			//case "FRIEND" -> AddFriend(splited_line);
+			default -> throw new UnrecognizedEntryException(splited_line[0]);
+		}
+	}
+
+/****************************** Clients Related ******************************/
+	public void RegisterClient(String[] splited_line) throws UnrecognizedEntryException, DuplicateClientKeyCoreException {
+		/*Zero's before non zero numbers in Client's taxID must be removed. */
+		splited_line[3] = splited_line[3].replaceFirst ("^0*", "");
+		/*Verify entry fields. */
+		if (!splited_line[0].equals("CLIENT") || splited_line[1].equals("") ||
+		splited_line[2].equals("") || splited_line[3].equals(""))
+			throw new UnrecognizedEntryException("Client");
+		Client client = new Client(splited_line[1], splited_line[2], splited_line[3]);
+
+		/*Add the new client to the others. */
+		AddClient(splited_line[1], client);
+	}
+
+
+	public void AddClient(String ClientKey, Client client) throws DuplicateClientKeyCoreException {
+		/*Verify if client's key already exists.*/
+		if (_Clients.containsKey(ClientKey)) {
+			throw new DuplicateClientKeyCoreException(ClientKey);
+		}
+		//If the key is new, add the client.
+		else {
+			_Clients.put(ClientKey, client);
+			setChanged(true);
+		}
+	}
+
+	/*Check if the client's key already exists */
+	public boolean searchClient(String key) {
+		
+		return _Clients.containsKey(key);
+		
+	}
+
+	public Client getClient(String key) {
+		return _Clients.get(key);
+	}
+
+	public Collection getAllClients() {
+		return _Clients.values();
+	}	
+
+/*****************************************************************************/
+
+
+/****************************** Terminal Related *****************************/
+	public void RegisterTerminal(String[] splited_line) throws UnrecognizedEntryException, UnknownClientKeyCoreException {
+		/*Some input verifications. */
+		if ((!splited_line[0].equals("BASIC") && !splited_line[0].equals("FANCY"))
+		|| splited_line[1].equals("") || splited_line[2].equals("") ||
+		(!splited_line[3].equals("ON") && !splited_line[3].equals("OFF") &&
+		!splited_line[3].equals("BUSY") && !splited_line[3].equals("SILENCE")))
+			throw new UnrecognizedEntryException("Terminal");
+
+		if (splited_line[0].equals("BASIC"))
+			RegisterTerminalBasic(splited_line);
+		if (splited_line[0].equals("FANCY"))
+			RegisterTerminalFancy(splited_line);
+	}
+
+	public void RegisterTerminalFancy(String[] splited_line) throws UnknownClientKeyCoreException {
+		Terminal terminal = new FancyTerminal(splited_line[0], splited_line[1],
+										splited_line[2], splited_line[3]);
+		AddTerminal(splited_line[1], terminal);
+	}
+
+	public void RegisterTerminalBasic(String[] splited_line) throws UnknownClientKeyCoreException {
+		Terminal terminal = new BasicTerminal(splited_line[0], splited_line[1],
+										splited_line[2], splited_line[3]);
+		AddTerminal(splited_line[1], terminal);
+	}
+
+	public void AddTerminal(String TerminalID, Terminal terminal) throws UnknownClientKeyCoreException {
+		_Terminals.put(TerminalID, terminal);
+		/*Add this new terminal to client's number of terminals. */
+		Client client = _Clients.get(terminal.getClientID());
+		if (!(_Clients.containsKey(terminal.getClientID())))
+			throw new UnknownClientKeyCoreException(terminal.getClientID());
+		int NumberOfTerminals = client.getClientNumberTerminals();
+		NumberOfTerminals = NumberOfTerminals + 1;
+		client.setClientNumberTerminals(NumberOfTerminals);
+		setChanged(true);
+	}
+
+	public boolean searchTerminal(String TerminalID) {
+		return _Terminals.containsKey(TerminalID);
+	}
+
+	public Terminal getTerminal(String TerminalKey) {
+		return _Terminals.get(TerminalKey);
+	}
+
+	public Collection getAllTerminals() {
+		return _Terminals.values();
+	}
+
+	public Collection getAllUnusedTerminals() {
+		List<Terminal> UnusedTerminals = new ArrayList<Terminal>();
+		for (String terminalID : _Terminals.keySet()){
+			Terminal terminal = _Terminals.get(terminalID);
+			if (terminal.getTerminalCommunications().isEmpty())
+				UnusedTerminals.add(terminal);
+		}
+		return UnusedTerminals;
+	}
+/*****************************************************************************/
+
+	public Collection getAllCommunications() {
+		return _Communications.values();
+	}
+
+
+
+
+
+
+
+
+
+}
